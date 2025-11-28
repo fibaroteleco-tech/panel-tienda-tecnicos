@@ -1,0 +1,66 @@
+function doGet(e) {
+  // Devuelve la página HTML del panel
+  return HtmlService.createHtmlOutputFromFile("panel")
+    .setTitle("Panel tienda & técnicos");
+}
+
+// Esta función la llama el frontend para obtener los trabajos
+function getTrabajos(params) {
+  var tecnicoParam = params && params.tecnico ? String(params.tecnico).toLowerCase() : "";
+  var fechaParam = params && params.fecha ? params.fecha : "";
+
+  var ss = SpreadsheetApp.getActive();
+  var sheet = ss.getActiveSheet(); // si quieres otra hoja: ss.getSheetByName("NOMBRE_HOJA")
+  var values = sheet.getDataRange().getValues();
+
+  if (!values || values.length < 2) {
+    return [];
+  }
+
+  var headers = values[0];
+  var rows = values.slice(1);
+
+  var COL_TIMESTAMP = headers.indexOf("PP48102719793");
+  var COL_EMAIL     = headers.indexOf("Dirección de correo electrónico");
+  var COL_COD_TEC   = headers.indexOf("CÓDIGO TÉCNICO");
+
+  var result = [];
+
+  rows.forEach(function(row) {
+    if (!row[COL_TIMESTAMP]) return;
+
+    var obj = {};
+    headers.forEach(function(h, i) {
+      obj[h] = row[i];
+    });
+
+    // --- Filtro por técnico (código o email) ---
+    if (tecnicoParam) {
+      var codTec = obj["CÓDIGO TÉCNICO"] ? String(obj["CÓDIGO TÉCNICO"]).toLowerCase() : "";
+      var email  = obj["Dirección de correo electrónico"] ? String(obj["Dirección de correo electrónico"]).toLowerCase() : "";
+      if (codTec !== tecnicoParam && email !== tecnicoParam) {
+        return;
+      }
+    }
+
+    // --- Filtro por fecha (YYYY-MM-DD) ---
+    if (fechaParam) {
+      var ts = row[COL_TIMESTAMP];
+      var d = (ts instanceof Date) ? ts : new Date(ts);
+      if (isNaN(d.getTime())) return;
+
+      var y = d.getFullYear();
+      var m = String(d.getMonth() + 1).padStart(2, "0");
+      var day = String(d.getDate()).padStart(2, "0");
+      var dateStr = y + "-" + m + "-" + day;
+
+      if (dateStr !== fechaParam) {
+        return;
+      }
+    }
+
+    result.push(obj);
+  });
+
+  return result;
+}

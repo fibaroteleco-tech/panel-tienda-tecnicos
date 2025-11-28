@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Panel tienda & técnicos</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f3f4f6;
+    }
+    h1 {
+      margin-bottom: 0.25rem;
+    }
+    h2 {
+      margin-top: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .subtitle {
+      color: #4b5563;
+      margin-bottom: 1.5rem;
+      font-size: 0.95rem;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.7fr) minmax(0, 2fr);
+      gap: 20px;
+      align-items: flex-start;
+    }
+    @media (max-width: 900px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 16px 20px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+      margin-bottom: 16px;
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      font-size: 0.9rem;
+    }
+    label {
+      margin-bottom: 4px;
+      color: #374151;
+      font-weight: 500;
+    }
+    input[type="date"],
+    select,
+    input[type="text"] {
+      padding: 6px 8px;
+      border-radius: 6px;
+      border: 1px solid #d1d5db;
+      min-width: 180px;
+      font-size: 0.9rem;
+    }
+    button {
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-size: 0.9rem;
+      background: #2563eb;
+      color: white;
+      font-weight: 500;
+    }
+    button:disabled {
+      opacity: 0.6;
+      cursor: default;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 0.85rem;
+    }
+    th, td {
+      padding: 6px 8px;
+      border-bottom: 1px solid #e5e7eb;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      background: #f9fafb;
+      font-weight: 600;
+    }
+    tr.sabado-row {
+      background: #fff7ed;
+      font-weight: 500;
+    }
+    .tag {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      background: #e5e7eb;
+      color: #374151;
+      margin-left: 4px;
+    }
+    .tag-sabado {
+      background: #fed7aa;
+      color: #9a3412;
+    }
+    .footer-note {
+      font-size: 0.8rem;
+      color: #6b7280;
+      margin-top: 6px;
+    }
+    .badge-incidencia {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      background: #fee2e2;
+      color: #b91c1c;
+      margin-left: 4px;
+    }
+    .scroll-table {
+      max-height: 420px;
+      overflow: auto;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+      margin-top: 8px;
+      background: #ffffff;
+    }
+  </style>
+</head>
+<body>
+  <h1>Panel tienda &amp; técnicos</h1>
+  <div class="subtitle">
+    Horario de Alicia y María + trabajos de técnicos leídos en tiempo real desde la hoja de Google (formularios).
+  </div>
+
+  <div class="grid">
+    <!-- BLOQUE 1: HORARIO TIENDA -->
+    <div>
+      <div class="card">
+        <h2>Horario Alicia &amp; María</h2>
+        <div class="controls">
+          <div class="control-group">
+            <label for="weekType">Tipo de semana</label>
+            <select id="weekType">
+              <option value="1">Semana 1 – Alicia sábado</option>
+              <option value="2">Semana 2 – María sábado</option>
+            </select>
+          </div>
+
+          <div class="control-group">
+            <label for="mondayDate">Fecha del lunes</label>
+            <input type="date" id="mondayDate" />
+            <div class="footer-note">
+              Elige el lunes de la semana que quieres ver.
+            </div>
+          </div>
+        </div>
+
+        <table id="scheduleTable">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Día</th>
+              <th>Alicia</th>
+              <th>María</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+
+        <div class="footer-note">
+          Patrón fijo de 2 semanas: quien hace tarde, al día siguiente hace mañana. Sábados alternos.
+        </div>
+      </div>
+    </div>
+
+    <!-- BLOQUE 2: TRABAJOS TÉCNICOS -->
+    <div>
+      <div class="card">
+        <h2>Trabajos técnicos (desde Google Forms)</h2>
+        <div class="controls">
+          <div class="control-group">
+            <label for="tecFilter">Técnico (código o email)</label>
+            <input type="text" id="tecFilter" placeholder="Ej: I1410 o selu.tela@gmail.com" />
+          </div>
+          <div class="control-group">
+            <label for="jobDate">Fecha</label>
+            <input type="date" id="jobDate" />
+          </div>
+          <div class="control-group" style="margin-top: 18px;">
+            <button id="loadJobsBtn">Cargar trabajos</button>
+          </div>
+        </div>
+
+        <div class="footer-note">
+          Los datos se leen directamente de la hoja donde llegan las respuestas del formulario.
+        </div>
+
+        <div class="scroll-table">
+          <table id="jobsTable">
+            <thead>
+              <tr>
+                <th>Fecha/hora envío</th>
+                <th>Cód. técnico / email</th>
+                <th>Tipo trabajo</th>
+                <th>Código OT</th>
+                <th>Estado / incidencia</th>
+                <th>Router / ONT</th>
+                <th>KM inicio/fin</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <div class="footer-note" id="jobsInfo"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const schedulePatterns = {
+      1: [
+        { dayName: "Lunes",    alicia: "13:00–20:00 (tarde)",   maria: "08:00–16:00 (mañana)", sabado: false },
+        { dayName: "Martes",   alicia: "08:00–15:00 (mañana)",  maria: "12:00–20:00 (tarde)",  sabado: false },
+        { dayName: "Miércoles",alicia: "13:00–20:00 (tarde)",   maria: "08:00–16:00 (mañana)", sabado: false },
+        { dayName: "Jueves",   alicia: "08:00–15:00 (mañana)",  maria: "12:00–20:00 (tarde)",  sabado: false },
+        { dayName: "Viernes",  alicia: "13:00–20:00 (tarde)",   maria: "08:00–16:00 (mañana)", sabado: false },
+        { dayName: "Sábado",   alicia: "08:30–13:30",           maria: "LIBRE",                sabado: true  }
+      ],
+      2: [
+        { dayName: "Lunes",    alicia: "08:00–16:00 (mañana)",  maria: "13:00–20:00 (tarde)",  sabado: false },
+        { dayName: "Martes",   alicia: "12:00–20:00 (tarde)",   maria: "08:00–15:00 (mañana)", sabado: false },
+        { dayName: "Miércoles",alicia: "08:00–16:00 (mañana)",  maria: "13:00–20:00 (tarde)",  sabado: false },
+        { dayName: "Jueves",   alicia: "12:00–20:00 (tarde)",   maria: "08:00–15:00 (mañana)", sabado: false },
+        { dayName: "Viernes",  alicia: "08:00–16:00 (mañana)",  maria: "13:00–20:00 (tarde)",  sabado: false },
+        { dayName: "Sábado",   alicia: "LIBRE",                 maria: "08:30–13:30",          sabado: true  }
+      ]
+    };
+
+    const weekTypeSelect = document.getElementById("weekType");
+    const mondayDateInput = document.getElementById("mondayDate");
+    const scheduleTableBody = document.querySelector("#scheduleTable tbody");
+
+    function getNextMonday() {
+      const today = new Date();
+      const day = today.getDay();
+      const diff = (day === 1) ? 0 : ((8 - day) % 7);
+      const nextMonday = new Date(today);
+      nextMonday.setDate(today.getDate() + diff);
+      return nextMonday;
+    }
+
+    function formatDateDMY(date) {
+      const d = String(date.getDate()).padStart(2, "0");
+      const m = String(date.getMonth() + 1).padStart(2, "0");
+      const y = date.getFullYear();
+      return `${d}/${m}/${y}`;
+    }
+
+    function renderSchedule() {
+      const weekType = weekTypeSelect.value;
+      const pattern = schedulePatterns[weekType];
+      const mondayValue = mondayDateInput.value;
+      if (!mondayValue) return;
+
+      const mondayDate = new Date(mondayValue + "T00:00:00");
+      scheduleTableBody.innerHTML = "";
+
+      pattern.forEach((row, index) => {
+        const tr = document.createElement("tr");
+        if (row.sabado) tr.classList.add("sabado-row");
+
+        const currentDate = new Date(mondayDate);
+        currentDate.setDate(mondayDate.getDate() + index);
+
+        const tdDate = document.createElement("td");
+        tdDate.textContent = formatDateDMY(currentDate);
+
+        const tdDay = document.createElement("td");
+        tdDay.textContent = row.dayName;
+        if (row.sabado) {
+          const tag = document.createElement("span");
+          tag.textContent = "sábado";
+          tag.className = "tag tag-sabado";
+          tdDay.appendChild(document.createTextNode(" "));
+          tdDay.appendChild(tag);
+        }
+
+        const tdAlicia = document.createElement("td");
+        tdAlicia.textContent = row.alicia;
+
+        const tdMaria = document.createElement("td");
+        tdMaria.textContent = row.maria;
+
+        tr.appendChild(tdDate);
+        tr.appendChild(tdDay);
+        tr.appendChild(tdAlicia);
+        tr.appendChild(tdMaria);
+
+        scheduleTableBody.appendChild(tr);
+      });
+    }
+
+    const nextMonday = getNextMonday();
+    mondayDateInput.value = nextMonday.toISOString().slice(0, 10);
+    weekTypeSelect.addEventListener("change", renderSchedule);
+    mondayDateInput.addEventListener("change", renderSchedule);
+    renderSchedule();
+
+    const tecFilterInput = document.getElementById("tecFilter");
+    const jobDateInput = document.getElementById("jobDate");
+    const loadJobsBtn = document.getElementById("loadJobsBtn");
+    const jobsTableBody = document.querySelector("#jobsTable tbody");
+    const jobsInfo = document.getElementById("jobsInfo");
+
+    function formatTs(ts) {
+      if (!ts) return "";
+      const d = new Date(ts);
+      if (isNaN(d.getTime())) return String(ts);
+      const dd = String(d.getDate()).padStart(2, "0");
+      const mm = String(d.getMonth() + 1).padStart(2, "0");
+      const yyyy = d.getFullYear();
+      const hh = String(d.getHours()).padStart(2, "0");
+      const min = String(d.getMinutes()).padStart(2, "0");
+      return `${dd}/${mm}/${yyyy} ${hh}:${min}`;
+    }
+
+    function renderJobs(data) {
+      jobsTableBody.innerHTML = "";
+
+      if (!Array.isArray(data) || data.length === 0) {
+        jobsInfo.textContent = "No hay registros para ese filtro.";
+        return;
+      }
+
+      data.forEach(row => {
+        const tr = document.createElement("tr");
+
+        const ts = row["PP48102719793"];
+        const email = row["Dirección de correo electrónico"] || "";
+        const codTec = row["CÓDIGO TÉCNICO"] || "";
+        const tipoTrabajo = row["TIPO TRABAJO"] || "";
+        const codOT = row["CÓDIGO OT"] || "";
+        const estadoAltas = row["ESTADO ALTAS"] || "";
+        const tipoIncidencia = row["TIPO INCIDENCIA"] || "";
+        const router = row["ROUTER"] || "";
+        const ont = row["ONT"] || "";
+        const kmInicio = row["KM INICIO"] || row["KM"] || "";
+        const kmFin = row["KM FIN"] || row["FIN JORNADA"] || "";
+
+        const tdTs = document.createElement("td");
+        tdTs.textContent = formatTs(ts);
+
+        const tdTec = document.createElement("td");
+        tdTec.textContent = codTec || "";
+        if (email) {
+          tdTec.appendChild(document.createElement("br"));
+          const small = document.createElement("span");
+          small.style.fontSize = "0.75rem";
+          small.style.color = "#6b7280";
+          small.textContent = email;
+          tdTec.appendChild(small);
+        }
+
+        const tdTipo = document.createElement("td");
+        tdTipo.textContent = tipoTrabajo || "";
+
+        const tdOT = document.createElement("td");
+        tdOT.textContent = codOT || "";
+
+        const tdEstado = document.createElement("td");
+        tdEstado.textContent = estadoAltas || "";
+        if (tipoIncidencia) {
+          const badge = document.createElement("span");
+          badge.textContent = tipoIncidencia;
+          badge.className = "badge-incidencia";
+          tdEstado.appendChild(document.createElement("br"));
+          tdEstado.appendChild(badge);
+        }
+
+        const tdEquip = document.createElement("td");
+        tdEquip.textContent = `Router: ${router || "-"}
+ONT: ${ont || "-"}`;
+        tdEquip.style.whiteSpace = "pre-line";
+
+        const tdKm = document.createElement("td");
+        tdKm.textContent = `Inicio: ${kmInicio || "-"}
+Fin: ${kmFin || "-"}`;
+        tdKm.style.whiteSpace = "pre-line";
+
+        tr.appendChild(tdTs);
+        tr.appendChild(tdTec);
+        tr.appendChild(tdTipo);
+        tr.appendChild(tdOT);
+        tr.appendChild(tdEstado);
+        tr.appendChild(tdEquip);
+        tr.appendChild(tdKm);
+
+        jobsTableBody.appendChild(tr);
+      });
+
+      jobsInfo.textContent = `Total registros: ${data.length}`;
+    }
+
+    function loadJobs() {
+      const tecnico = tecFilterInput.value.trim();
+      const fecha = jobDateInput.value;
+
+      jobsInfo.textContent = "";
+      jobsTableBody.innerHTML = "";
+
+      if (!tecnico && !fecha) {
+        jobsInfo.textContent = "Introduce al menos técnico o fecha para filtrar.";
+        return;
+      }
+
+      loadJobsBtn.disabled = true;
+      loadJobsBtn.textContent = "Cargando...";
+
+      google.script.run
+        .withSuccessHandler(function(data) {
+          renderJobs(data);
+          loadJobsBtn.disabled = false;
+          loadJobsBtn.textContent = "Cargar trabajos";
+        })
+        .withFailureHandler(function(err) {
+          console.error(err);
+          jobsInfo.textContent = "Error al cargar datos desde el script.";
+          loadJobsBtn.disabled = false;
+          loadJobsBtn.textContent = "Cargar trabajos";
+        })
+        .getTrabajos({ tecnico: tecnico.toLowerCase(), fecha: fecha });
+    }
+
+    loadJobsBtn.addEventListener("click", loadJobs);
+  </script>
+</body>
+</html>
